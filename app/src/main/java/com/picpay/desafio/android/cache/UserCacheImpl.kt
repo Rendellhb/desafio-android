@@ -16,7 +16,8 @@ class UserCacheImpl: UserCache {
     private val DEFAULT_FILE_NAME = "users.json"
 
     override fun get(context: Context): List<User> {
-        val usersFile = File("${context.cacheDir} /cache/ + $DEFAULT_FILE_NAME")
+        val usersFile = File(context.cacheDir.absolutePath + File.separator +
+                DEFAULT_FILE_NAME)
         if (usersFile.exists()) {
             val listType: Type = object : TypeToken<ArrayList<User?>?>() {}.type
             return Gson().fromJson(FileReader(usersFile), listType)
@@ -35,6 +36,7 @@ class UserCacheImpl: UserCache {
         val usersFile = buildFile(directory)
         return usersFile?.exists() ?: false
     }
+
     private fun buildFile(directory: File): File? {
         if (!directory.exists()) directory.mkdir()
         val file = File(directory.absolutePath + File.separator + DEFAULT_FILE_NAME)

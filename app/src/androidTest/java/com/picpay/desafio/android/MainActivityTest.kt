@@ -1,16 +1,25 @@
 package com.picpay.desafio.android
 
+import android.view.View
+import android.view.ViewGroup
 import androidx.lifecycle.Lifecycle
 import androidx.test.core.app.launchActivity
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.assertion.ViewAssertions.matches
+import androidx.test.espresso.matcher.ViewMatchers
 import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
 import androidx.test.espresso.matcher.ViewMatchers.withText
 import androidx.test.platform.app.InstrumentationRegistry
+import com.picpay.desafio.android.view_model.ListUsersViewModel
 import okhttp3.mockwebserver.Dispatcher
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import okhttp3.mockwebserver.RecordedRequest
+import org.hamcrest.Description
+import org.hamcrest.Matcher
+import org.hamcrest.Matchers
+import org.hamcrest.TypeSafeMatcher
+import org.hamcrest.core.IsInstanceOf
 import org.junit.Test
 
 
@@ -45,10 +54,44 @@ class MainActivityTest {
         server.start(serverPort)
 
         launchActivity<MainActivity>().apply {
-            // TODO("validate if list displays items returned by server")
+            moveToState(Lifecycle.State.RESUMED)
+            val viewGroup = onView(
+                Matchers.allOf(
+                    childAtPosition(
+                        Matchers.allOf(
+                            ViewMatchers.withId(R.id.recyclerView),
+                            childAtPosition(
+                                IsInstanceOf.instanceOf(ViewGroup::class.java),
+                                0
+                            )
+                        ),
+                        0
+                    ),
+                    isDisplayed()
+                )
+            )
+            viewGroup.check(matches(isDisplayed()))
         }
 
         server.close()
+    }
+
+    private fun childAtPosition(
+        parentMatcher: Matcher<View>, position: Int
+    ): Matcher<View> {
+
+        return object : TypeSafeMatcher<View>() {
+            override fun describeTo(description: Description) {
+                description.appendText("Child at position $position in parent ")
+                parentMatcher.describeTo(description)
+            }
+
+            public override fun matchesSafely(view: View): Boolean {
+                val parent = view.parent
+                return parent is ViewGroup && parentMatcher.matches(parent)
+                        && view == parent.getChildAt(position)
+            }
+        }
     }
 
     companion object {

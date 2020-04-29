@@ -21,11 +21,9 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
     private lateinit var adapter: UserListAdapter
 
     private val listUserViewModel: ListUsersViewModel by viewModel()
-    private lateinit var users: LiveData<List<User>>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        users = listUserViewModel.users
 
         recyclerView = findViewById(R.id.recyclerView)
         progressBar = findViewById(R.id.user_list_progress_bar)
@@ -36,7 +34,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
 
         progressBar.visibility = View.VISIBLE
 
-        users.observe(this, Observer<List<User>> { users ->
+        listUserViewModel.users.observe(this, Observer<List<User>> { users ->
             adapter.users = users
             progressBar.visibility = View.GONE
         })
@@ -44,16 +42,12 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
 
     override fun onResume() {
         super.onResume()
-        try {
-            users = listUserViewModel.users
-        } catch(e: Exception) {
+        listUserViewModel.componentsVisibility.observe(this, Observer<Int> {
+            progressBar.visibility = it
+            recyclerView.visibility = it
             val message = getString(R.string.error)
 
-            progressBar.visibility = View.GONE
-            recyclerView.visibility = View.GONE
-
             Toast.makeText(this@MainActivity, message, Toast.LENGTH_SHORT).show()
-            e.printStackTrace()
-        }
+        })
     }
 }
