@@ -10,6 +10,7 @@ import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.picpay.desafio.android.model.User
+import com.picpay.desafio.android.ui.UserListAdapter
 import com.picpay.desafio.android.view_model.ListUsersViewModel
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
@@ -36,18 +37,23 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
         progressBar.visibility = View.VISIBLE
 
         users.observe(this, Observer<List<User>> { users ->
-            if (users != null) {
-                adapter.users = users
-                progressBar.visibility = View.GONE
-            } else {
-                val message = getString(R.string.error)
-
-                progressBar.visibility = View.GONE
-                recyclerView.visibility = View.GONE
-
-                Toast.makeText(this@MainActivity, message, Toast.LENGTH_SHORT)
-                    .show()
-            }
+            adapter.users = users
+            progressBar.visibility = View.GONE
         })
+    }
+
+    override fun onResume() {
+        super.onResume()
+        try {
+            users = listUserViewModel.users
+        } catch(e: Exception) {
+            val message = getString(R.string.error)
+
+            progressBar.visibility = View.GONE
+            recyclerView.visibility = View.GONE
+
+            Toast.makeText(this@MainActivity, message, Toast.LENGTH_SHORT).show()
+            e.printStackTrace()
+        }
     }
 }
